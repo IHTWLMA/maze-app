@@ -23,8 +23,10 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
         
-      - name: Setup Expo
-        run: eas init --id 94cfe880-ce08-4909-be19-fed31223dab1 --non-interactive
+      - name: Login to Expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas login --non-interactive
         
       - name: Build APK
         env:
