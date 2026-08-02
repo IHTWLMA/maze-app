@@ -1,0 +1,42 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Build APK
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          command: build --platform android --profile preview --non-interactive
+          
+      - name: Download APK
+        run: |
+          APK_URL=$(eas build:list --platform android --limit 1 --json --field buildUrl)
+          curl -L -o maze.apk "$APK_URL"
+          
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: maze-apk
+          path: maze.apk
