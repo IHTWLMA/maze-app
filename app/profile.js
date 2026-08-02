@@ -1,9 +1,10 @@
-// 我的 - 导出+同步
+// 我的 - 导出+导入+同步
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useTheme, SPACING, RADIUS } from '../lib/theme';
-import { getAllItems, manualSync } from '../lib/db';
+import { getAllItems, manualSync, addItem } from '../lib/db';
 import * as Clipboard from 'expo-clipboard';
+import * as DocumentPicker from 'expo-document-picker';
 
 export default function ProfileScreen() {
   const T = useTheme();
@@ -35,6 +36,23 @@ export default function ProfileScreen() {
     setTimeout(() => setSyncStatus(''), 3000);
   };
 
+  const handleImport = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
+      if (result.canceled) return;
+      const file = result.assets[0];
+      const response = await fetch(file.uri);
+      const data = await response.json();
+      if (data.items) {
+        for (const item of data.items) {
+          await addItem(item.title, item.content, item.summary, item.annotations, item.thoughts, item.tags || [], item.group || '未分类');
+        }
+      }
+      loadItems();
+      Alert.alert('导入成功', `已导入 ${data.items?.length || 0} 条`);
+    } catch (e) { Alert.alert('导入失败', e.message); }
+  };
+
   const exportSelected = async () => {
     const toExport = selected.size > 0 ? items.filter(i => selected.has(i.id)) : items;
     if (toExport.length === 0) { Alert.alert('提示', '没有可导出的内容'); return; }
@@ -48,33 +66,31 @@ export default function ProfileScreen() {
       md += `### 原文\n${item.content}\n\n---\n\n`;
     }
     await Clipboard.setStringAsync(md);
-    Alert.alert('✅ 导出成功', `已复制 ${toExport.length} 条到剪贴板`);
+    Alert.alert('导出成功', `已复制 ${toExport.length} 条到剪贴板`);
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: T.bg }}>
       <View style={{ padding: SPACING.lg }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: T.text, marginBottom: SPACING.lg }}>📤 导出与同步</Text>
+        <Text style={{ fontSize: 22, fontWeight: '700', color: T.text, marginBottom: SPACING.lg }}>📤 数据管理</Text>
 
-        {/* 同步状态 */}
         <TouchableOpacity onPress={handleSync} style={{ backgroundColor: T.primaryLight, padding: SPACING.md, borderRadius: RADIUS.md, marginBottom: SPACING.lg, alignItems: 'center' }}>
-          <Text style={{ color: T.primary, fontWeight: '600' }}>{syncStatus || '🔄 立即同步到电脑'}</Text>
-          <Text style={{ color: T.textSecondary, fontSize: 11, marginTop: 2 }}>连接家里WiFi时自动同步</Text>
+          <Text style={{ color: T.primary, fontWeight: '600' }}>{syncStatus || '🔄 同步到桌面端'}</Text>
         </TouchableOpacity>
 
         <View style={{ backgroundColor: T.primaryLight, padding: SPACING.sm, borderRadius: RADIUS.sm, marginBottom: SPACING.lg, alignItems: 'center' }}>
           <Text style={{ color: T.primary, fontSize: 13 }}>共 {stats.total} 条 · 已选 {selected.size} 条</Text>
         </View>
 
-        <TextInput value={search} onChangeText={setSearch}
-          placeholder="搜索筛选..." placeholderTextColor={T.textSecondary}
+        <TextInput value={search} onChangeText={setSearch} placeholder="搜索筛选..." placeholderTextColor={T.textSecondary}
           style={{ backgroundColor: T.bgInput, color: T.text, borderWidth: 1, borderColor: T.border, borderRadius: RADIUS.md, padding: SPACING.md, fontSize: 14, marginBottom: SPACING.md }} />
 
         <View style={{ flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md }}>
           <TouchableOpacity onPress={() => setSelected(new Set(filtered.map(i => i.id)))} style={[styles.btn, { backgroundColor: T.primaryLight }]}><Text style={{ color: T.primary, fontSize: 12 }}>全选</Text></TouchableOpacity>
           <TouchableOpacity onPress={() => setSelected(new Set())} style={[styles.btn, { backgroundColor: T.bgInput }]}><Text style={{ color: T.textSecondary, fontSize: 12 }}>取消</Text></TouchableOpacity>
+          <TouchableOpacity onPress={handleImport} style={[styles.btn, { backgroundColor: T.success }]}><Text style={{ color: '#fff', fontSize: 12 }}>📥 导入</Text></TouchableOpacity>
           <TouchableOpacity onPress={exportSelected} style={[styles.btn, { backgroundColor: T.primary, flex: 1 }]}>
-            <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>导出 ({selected.size || '全部'})</Text>
+            <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>📤 导出 ({selected.size || '全部'})</Text>
           </TouchableOpacity>
         </View>
       </View>
