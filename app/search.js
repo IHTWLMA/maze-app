@@ -1,8 +1,8 @@
-// 搜索页 - 实时搜索+高亮(输入即搜)
 import { useState } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme, SPACING, RADIUS } from '../lib/theme';
 import { getAllItems } from '../lib/db';
+import { router } from 'expo-router';
 
 function Highlight({ text, query }) {
   if (!query || !text) return <Text>{text}</Text>;
@@ -14,9 +14,8 @@ export default function SearchScreen() {
   const T = useTheme();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [allItems, setAllItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
-  const [expanded, setExpanded] = useState(null);
+  const [allItems, setAllItems] = useState([]);
 
   async function ensureLoaded() {
     if (!loaded) { const items = await getAllItems(); setAllItems(items); setLoaded(true); return items; }
@@ -31,6 +30,15 @@ export default function SearchScreen() {
     setResults(items.filter(i => (i.title + i.content + i.summary + (i.tags||[]).join('') + (i.group||'')).toLowerCase().includes(q)));
   }
 
+  function goToDetail(item) {
+    router.push({ pathname: '/detail', params: {
+      id: item.id, title: item.title, summary: item.summary || '',
+      annotations: item.annotations || '', thoughts: item.thoughts || '',
+      content: item.content || '', tags: JSON.stringify(item.tags || []),
+      group: item.group || item.group_name || '', created_at: item.created_at || ''
+    }});
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: T.bg }}>
       <View style={{ padding: SPACING.md }}>
@@ -42,11 +50,10 @@ export default function SearchScreen() {
       <FlatList data={results} keyExtractor={i => String(i.id)}
         contentContainerStyle={{ padding: SPACING.md, paddingTop: SPACING.sm }}
         renderItem={({ item }) => (
-          <TouchableOpacity style={[styles.card, { backgroundColor: T.bgCard, borderColor: T.border }]}
-            onPress={() => setExpanded(expanded === item.id ? null : item.id)}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: T.bgCard, borderColor: T.border }]} onPress={() => goToDetail(item)}>
             <Text style={[styles.title, { color: T.text }]}><Highlight text={item.title} query={query} /></Text>
             {(item.tags||[]).length > 0 && <View style={styles.tags}>{item.tags.slice(0,3).map((t,i) => <View key={i} style={[styles.tag, { backgroundColor: T.primaryLight }]}><Text style={{ color: T.primary, fontSize: 11 }}>{t}</Text></View>)}</View>}
-            <Text style={{ color: T.text, fontSize: 14, lineHeight: 21, marginTop: SPACING.sm }} numberOfLines={expanded === item.id ? undefined : 2}>
+            <Text style={{ color: T.text, fontSize: 14, lineHeight: 21, marginTop: SPACING.sm }} numberOfLines={2}>
               <Highlight text={item.summary || item.content} query={query} />
             </Text>
           </TouchableOpacity>
