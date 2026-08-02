@@ -11,9 +11,7 @@ function TabIcon({ name }) {
 
 export default function Layout() {
   const T = useTheme();
-
   useEffect(() => { startAutoSync(); }, []);
-
   return (
     <Tabs screenOptions={{
       tabBarActiveTintColor: T.primary, tabBarInactiveTintColor: T.textSecondary,
