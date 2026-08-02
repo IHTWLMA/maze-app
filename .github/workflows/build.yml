@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -20,23 +20,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           
-      - name: Install dependencies
-        run: npm install
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+        
+      - name: Setup Expo
+        run: eas init --id 94cfe880-ce08-4909-be19-fed31223dab1 --non-interactive
         
       - name: Build APK
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-          command: build --platform android --profile preview --non-interactive
-          
-      - name: Download APK
-        run: |
-          APK_URL=$(eas build:list --platform android --limit 1 --json --field buildUrl)
-          curl -L -o maze.apk "$APK_URL"
-          
-      - name: Upload APK as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: maze-apk
-          path: maze.apk
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile preview --non-interactive --wait
