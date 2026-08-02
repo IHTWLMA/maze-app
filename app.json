@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.maze.knowledge"
+      "package": "com.maze.knowledge",
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro",
