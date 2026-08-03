@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   tags: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
   tag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, marginRight: 6, marginBottom: 4 },
   tagInput: { width: 70, borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2, fontSize: 11 },
-  chip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginRight: 8 },
+  chip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginRight: 8, maxWidth: 160, minHeight: 32, justifyContent: 'center', alignItems: 'center' },
   folder: { borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.md, borderWidth: 1 },
   smallBtn: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.sm },
   section: { marginBottom: 12 },

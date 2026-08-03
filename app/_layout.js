@@ -24,6 +24,7 @@ export default function Layout() {
       <Tabs.Screen name="search" options={{ title: '搜索', tabBarIcon: (p) => <TabIcon name="搜索" {...p} /> }} />
       <Tabs.Screen name="profile" options={{ title: '数据', tabBarIcon: (p) => <TabIcon name="数据" {...p} /> }} />
       <Tabs.Screen name="detail" options={{ href: null, title: '详情' }} />
+      <Tabs.Screen name="index" options={{ href: null }} />
     </Tabs>
   );
 }
